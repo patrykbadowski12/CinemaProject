@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Adding</title>
+</head>
+<body>
+	<tr th:each="film: ${listOfFilms}">
+			<br>
+			<span th:text="${film.id}"></span>
+			<span th:text="${film.nameOfFilm}"></span>
+			<span th:text="${film.date}"></span>
+			<img th:src="${film.image}" height="150" widgth="150">
+			<br>
+		</tr>
+		
+	<form  method="post" th:action="@{/addFilm}">
+	<input type="text" th:value="${film.id}" name="firstName" roleId="id"  placeholder="ID" required="required"/>
+	<br>
+	<input type="text" th:value="${film.nameOfFilm}" name="nameOfFilm" roleId="nameOfFilm"  placeholder="Enter Name of film" required="required"/>
+	<br>
+	<input type="text" th:value="${film.time}" name="time" roleId="time"  placeholder="time" required="required"/>
+	<br>
+	<input type="text" th:value="${film.date}" name="date" roleId="date"  placeholder="date" required="required"/>
+	<br>
+	<input type="text" th:value="${film.image}" name="image" roleId="image"  placeholder="Enter url for Foto" required="required"/>
+	<button type="submit">Sign up!</button>
+</form>
+
+</body>
+</html>

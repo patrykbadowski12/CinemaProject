@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+	<h1>Welcome in Cinema</h1>
+
+	<tbody>
+		<tr th:each="film: ${films}">
+			<br>
+					<span th:text="${films.indexOf(film)}"></span>
+					<span th:text="${film.nameOfFilm}"></span>
+					<span th:text="${film.time}"></span>
+					<span th:text="${film.date}"></span>
+					<img th:src="${film.image}" height="150" widgth="150">
+				<div>
+				<span th:each="seat: ${film.mapOfPersons}"> 
+				<span th:if="${seat.value == null}" th:text="${seat.key}" />
+	
+				</div>
+			<br>
+			
+		</tr>
+
+	</tbody>
+	
+	<form method="post" th:object="${film}"th:action="@{/reservationPlace}">
+		<input type="number" th:value="${numberOfFilm}" name="numberOfFilm" roleId="numberOfFilm" placeholder="Wchich film?" required="required" /> <br>
+	<button type="submit">Go to reserv page</button>
+</body>
+</html>
