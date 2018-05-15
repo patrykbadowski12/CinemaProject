@@ -11,7 +11,7 @@ public class Films {
 	private String date;
 	private String image;
 	
-	public Map<Integer, Persons> mapOfPersons = new HashMap<Integer, Persons>();
+	private Map<Integer, Persons> mapOfPersons = new HashMap<Integer, Persons>();
 	
 	public Films() {
 		for(int i=1; i<=50; i++) {

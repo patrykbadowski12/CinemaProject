@@ -15,11 +15,6 @@
 					<span th:text="${film.time}"></span>
 					<span th:text="${film.date}"></span>
 					<img th:src="${film.image}" height="150" widgth="150">
-				<div>
-				<span th:each="seat: ${film.mapOfPersons}"> 
-				<span th:if="${seat.value == null}" th:text="${seat.key}" />
-	
-				</div>
 			<br>
 			
 		</tr>

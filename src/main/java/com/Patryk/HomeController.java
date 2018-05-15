@@ -82,12 +82,11 @@ public class HomeController {
 	@RequestMapping(value = "/reserv", method = RequestMethod.POST)
 	public String signupPost(@ModelAttribute("person") Persons person, @ModelAttribute("sit") int sit, Model model) {
 		
-		if(film.mapOfPersons.putIfAbsent(sit, person) != null) {
+		if(film.getMapOfPersons().putIfAbsent(sit, person) != null) {
 			return "redirect:/reservation";
 		}else{
 			model.addAttribute("films", listOfFilms);
 			return "redirect:/index";
-			listOfFilms.indexOf(film)
 		}
 	}
 	
@@ -115,6 +114,31 @@ public class HomeController {
 		
 
 		listOfFilms.add(film);
+		
+		return "redirect:/index";
+	}
+	@RequestMapping(value="/unreservation", method = RequestMethod.GET)
+	public String unreservation(Model model) {
+		
+		Persons person = new Persons();
+		model.addAttribute("person",person);
+		model.addAttribute("sit",sit);
+		model.addAttribute("numberOfFilm",numberOfFilm);
+		return "unreservation";
+	}
+	
+	@RequestMapping(value="unreserv",  method = RequestMethod.POST)
+	public String unreserv(Model model, @ModelAttribute("sit") int sit, @ModelAttribute("numberOfFilm") int numberOfFilm,
+			@ModelAttribute("person") Persons person) {
+		
+		Persons tempPerson=listOfFilms.get(numberOfFilm).getMapOfPersons().get(sit);
+	
+		if((tempPerson!= null) && (tempPerson.getKey().equals(person.getKey()))) {
+		listOfFilms.get(numberOfFilm).getMapOfPersons().replace(sit, null);
+		System.out.println("udało się zwolnic miejsce");
+		} else {
+			System.out.println("Miejsce jest wolne");
+		}
 		
 		return "redirect:/index";
 	}
