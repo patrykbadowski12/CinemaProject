@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>remove page</title>
+</head>
+<body>
+
+		<tr th:each="film: ${listOfFilms}">
+			<br>
+			<span th:text="${listOfFilms.indexOf(film)}"></span>
+			<span th:text="${film.nameOfFilm}"></span>
+			<span th:text="${film.date}"></span>
+			<br>
+		</tr>
+		<form  method="post" th:action="@{/removeFilm}">
+			<input type="number" th:value="${numberOfFilm}" name="numberOfFilm" roleId="numberOfFilm" placeholder="Wchich film?" required="required" /> <br>
+				<button type="submit">Remove</button>
+		</form>
+
+</body>
+</html>
