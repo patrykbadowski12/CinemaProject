@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Admin Page</title>
+</head>
+<body>
+<form th:action="@{/goToMainPage}">
+	<button type="submit">Go To Main Page</button>
+</form>
+
+<form th:action="@{/goToAddPage}">
+	<button type="submit">Go To Add Film</button>
+</form>
+
+<form th:action="@{/goToRemovePage}">
+	<button type="submit">Go To Remove Film</button>
+</form>
+
+</body>
+</html>

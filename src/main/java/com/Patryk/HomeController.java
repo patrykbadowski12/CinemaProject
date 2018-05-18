@@ -8,47 +8,12 @@ import java.util.List;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 @Controller
 public class HomeController {
-
-	SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-
-	private List<Films> listOfFilms = new ArrayList<Films>();
-
-	Films film;
-
-	public List<Films> getListOfFilms() {
-		return listOfFilms;
-	}
-
-	public void setListOfFilms(List<Films> listOfFilms) {
-		this.listOfFilms = listOfFilms;
-	}
-
-	int sit;
-
-	public int getSit() {
-		return sit;
-	}
-
-	public void setSit(int sit) {
-		this.sit = sit;
-	}
-
-	int numberOfFilm;
-
-	public int getNumberOfFilm() {
-		return numberOfFilm;
-	}
-
-	public void setNumberOfFilm(int numberOfFilm) {
-		this.numberOfFilm = numberOfFilm;
-	}
 
 	@RequestMapping("/")
 	public String index() {
@@ -75,16 +40,16 @@ public class HomeController {
 
 		Persons person = new Persons();
 
-		model.addAttribute("sit", sit);
+		model.addAttribute("seat", seat);
 		model.addAttribute("film", film);
 		model.addAttribute("person", person);
 		return "reservation";
 	}
 
 	@RequestMapping(value = "/reserv", method = RequestMethod.POST)
-	public String signupPost(@ModelAttribute("person") Persons person, @ModelAttribute("sit") int sit, Model model) {
+	public String signupPost(@ModelAttribute("person") Persons person, @ModelAttribute("seat") int seat, Model model) {
 
-		if (film.getMapOfPersons().putIfAbsent(sit, person) != null) {
+		if (film.getMapOfPersons().putIfAbsent(seat, person) != null) {
 			return "redirect:/reservation";
 		} else {
 			model.addAttribute("films", listOfFilms);
@@ -105,7 +70,7 @@ public class HomeController {
 			long diffMinutes = diff / (60 * 1000);
 			System.out.println(diffMinutes);
 
-			if (diffMinutes > 0) {
+			if (diffMinutes > 30) {
 
 				film = listOfFilms.get(numberOfFilm);
 				System.out.println(film);
@@ -120,7 +85,7 @@ public class HomeController {
 		return "redirect:/index";
 	}
 
-	@RequestMapping(value="/addFilm",method = RequestMethod.GET)
+	@RequestMapping(value = "/addFilm", method = RequestMethod.GET)
 	public String addFilm(Model model) {
 
 		model.addAttribute("film", new Films());
@@ -134,7 +99,7 @@ public class HomeController {
 
 		listOfFilms.add(film);
 
-		return "redirect:/index";
+		return "adminPort";
 	}
 
 	@RequestMapping(value = "/removeFilm", method = RequestMethod.GET)
@@ -147,7 +112,7 @@ public class HomeController {
 	public String removeFilm(Model model, @ModelAttribute("numberOfFilm") int numberOfFilm) {
 
 		getListOfFilms().remove(numberOfFilm);
-		return "redirect:/index";
+		return "adminPort";
 	}
 
 	@RequestMapping(value = "/unreservation", method = RequestMethod.GET)
@@ -155,7 +120,7 @@ public class HomeController {
 
 		Persons person = new Persons();
 		model.addAttribute("person", person);
-		model.addAttribute("sit", sit);
+		model.addAttribute("seat", seat);
 		model.addAttribute("numberOfFilm", numberOfFilm);
 		return "unreservation";
 	}
@@ -165,36 +130,95 @@ public class HomeController {
 			@ModelAttribute("numberOfFilm") int numberOfFilm, @ModelAttribute("person") Persons person) {
 
 		Date d1 = new Date();
+		long diffMinutes = 0;
 		System.out.println(d1);
 		try {
 			Date d2 = dateFormat
 					.parse(listOfFilms.get(numberOfFilm).getDate() + " " + listOfFilms.get(numberOfFilm).getTime());
 			long diff = d2.getTime() - d1.getTime();
 			System.out.println(diff);
-			long diffMinutes = diff / (60 * 1000);
+			diffMinutes = diff / (60 * 1000);
 			System.out.println(diffMinutes);
-
-			if (diffMinutes >= 14) {
-
-				Persons tempPerson = listOfFilms.get(numberOfFilm).getMapOfPersons().get(sit);
-
-				if ((tempPerson != null) && (tempPerson.getKey().equals(person.getKey()))) {
-					listOfFilms.get(numberOfFilm).getMapOfPersons().replace(sit, null);
-					System.out.println("udało się zwolnic miejsce");
-					return "redirect:/index";
-				} else {
-					System.out.println("Miejsce jest wolne");
-					return "redirect:/unreservation";
-				}
-			} else {
-				System.out.println("za pozno");
-				return "redirect:/index";
-			}
 
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
+		if (diffMinutes >= 30) {
 
+			Persons tempPerson = listOfFilms.get(numberOfFilm).getMapOfPersons().get(sit);
+
+			if ((tempPerson != null) && (tempPerson.getKey().equals(person.getKey()))) {
+				listOfFilms.get(numberOfFilm).getMapOfPersons().replace(sit, null);
+				System.out.println("udało się zwolnic miejsce");
+				return "redirect:/index";
+			} else {
+				System.out.println("Miejsce jest wolne");
+				return "redirect:/unreservation";
+			}
+		} else {
+			System.out.println("za pozno");
+			return "redirect:/index";
+		}
+	}
+
+	@RequestMapping(value = "goToAdmin", method = RequestMethod.POST)
+	public String goToAdmin(Model model, @ModelAttribute("adminLog") String adminLog,
+			@ModelAttribute("adminPass") String adminPass) {
+		if(adminLog.equals("admin") && adminPass.equals("admin")) {
+		return "adminPort";
+	} else {
+		return "redirect:/index";
+		}
+	}
+	
+	@RequestMapping(value="goToAddPage")
+	public String goToAddPage(Model model) {
+		return "redirect:/addFilm";
+	}
+	
+	@RequestMapping(value="goToRemovePage")
+	public String goToRemovePage(Model model) {
+		return "redirect:/removeFilm";
+	}
+	
+	@RequestMapping(value="goToMainPage")
+	public String goToMainPage(Model model) {
 		return "redirect:/index";
 	}
+	
+
+	SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+
+	private List<Films> listOfFilms = new ArrayList<Films>();
+
+	private Films film;
+
+	private int numberOfFilm;
+
+	private int seat;
+
+	public List<Films> getListOfFilms() {
+		return listOfFilms;
+	}
+
+	public void setListOfFilms(List<Films> listOfFilms) {
+		this.listOfFilms = listOfFilms;
+	}
+
+	public int getSeat() {
+		return seat;
+	}
+
+	public void setSit(int seat) {
+		this.seat = seat;
+	}
+
+	public int getNumberOfFilm() {
+		return numberOfFilm;
+	}
+
+	public void setNumberOfFilm(int numberOfFilm) {
+		this.numberOfFilm = numberOfFilm;
+	}
+
 }

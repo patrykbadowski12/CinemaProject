@@ -6,6 +6,11 @@
 </head>
 <body>
 	<h1>Welcome in Cinema</h1>
+	<form method="post" th:action="@{/goToAdmin}">
+		<input type="text" th:value="@{adminLog}" name="adminLog" roleId="adminLog" required="required"/>
+		<input type="text" th:value="@{adminPass}" name="adminPass" roleId="adminPass" required="required"/>
+		<button type="submit">Go As Admin</button>
+	</form>
 
 	<tbody>
 		<tr th:each="film: ${films}">
@@ -21,8 +26,9 @@
 
 	</tbody>
 	
-	<form method="post" th:object="${film}"th:action="@{/reservationPlace}">
+	<form method="post" th:action="@{/reservationPlace}">
 		<input type="number" th:value="${numberOfFilm}" name="numberOfFilm" roleId="numberOfFilm" placeholder="Wchich film?" required="required" /> <br>
 	<button type="submit">Go to reserv page</button>
+	
 </body>
 </html>

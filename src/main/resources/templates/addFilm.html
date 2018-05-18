@@ -19,12 +19,17 @@
 	<br>
 	<input type="text" th:value="${film.nameOfFilm}" name="nameOfFilm" roleId="nameOfFilm"  placeholder="Enter Name of film" required="required"/>
 	<br>
-	<input type="text" th:value="${film.time}" name="time" roleId="time"  placeholder="time" required="required"/>
+	<span>HH.MM.SS</span>
 	<br>
-	<input type="text" th:value="${film.date}" name="date" roleId="date"  placeholder="date" required="required"/>
+	<input type="text" th:value="${film.time}" pattern="(0[0-9]|1[0-9]|2[0-3])(:[0-5][0-9]){2}"
+	 name="time" roleId="time"  placeholder="time" required="required"/>
+	<br>
+	<span>DD.MM.YYYY</span> <br>
+	<input type="text" th:value="${film.date}" pattern="(0[1-9]|1[0-9]|2[0-9]|3[01]).(0[1-9]|1[012]).[0-9]{4}"
+			name="date" roleId="date"  placeholder="date" required="required"/>
 	<br>
 	<input type="text" th:value="${film.image}" name="image" roleId="image"  placeholder="Enter url for Foto" required="required"/>
-	<button type="submit">Sign up!</button>
+	<button type="submit">Add film</button>
 </form>
 
 </body>
