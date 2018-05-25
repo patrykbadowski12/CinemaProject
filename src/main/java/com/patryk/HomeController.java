@@ -1,4 +1,4 @@
-package com.Patryk;
+package com.patryk;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -18,11 +22,42 @@ public class HomeController {
 	@RequestMapping("/")
 	public String index() {
 
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Films.class)
+				.addAnnotatedClass(Persons.class).buildSessionFactory();
+
+		try {
+
+			Films tempFilm;
+			int i = 1;
+
+			do {
+				Session session = factory.getCurrentSession();
+
+				session.beginTransaction();
+
+				tempFilm = session.get(Films.class, i);
+
+		
+					if (tempFilm != null) {
+						listOfFilms.add(new Films(tempFilm));
+					}
+		
+
+				session.getTransaction().commit();
+				i++;
+
+				System.out.println(tempFilm);
+			} while (tempFilm != null);
+
+		} finally {
+			factory.close();
+		}
+
 		listOfFilms.add(
-				new Films(1, "Avengers", "07:42:00", "04.08.2015", "http://1.fwcdn.pl/po/37/58/693758/7839647.3.jpg"));
-		listOfFilms.add(new Films(2, "Spider Man", "15:23:00", "16.5.2018",
+				new Films("Avengers", "07:42:00", "04.08.2015", "http://1.fwcdn.pl/po/37/58/693758/7839647.3.jpg"));
+		listOfFilms.add(new Films("Spider Man", "15:23:00", "16.5.2018",
 				"http://moviesroom.pl/images/0.Aktualizacja_listopad/Pat/spider-man-homecoming-poster-plakat-1000x600.jpg"));
-		listOfFilms.add(new Films(3, "Thor", "14:50:00", "06.10.2018",
+		listOfFilms.add(new Films("Thor", "14:50:00", "06.10.2018",
 				"https://images-na.ssl-images-amazon.com/images/G/01/digital/video/hero/Movies/2013/ThorDarkWorld_2194942100-TDW0NNG1._V362444527_RI_SX940_.jpg"));
 
 		return "redirect:/index";
@@ -37,23 +72,44 @@ public class HomeController {
 
 	@RequestMapping(value = "/reservation", method = RequestMethod.GET)
 	public String reservation(Model model) {
-
 		Persons person = new Persons();
 
-		model.addAttribute("seat", seat);
 		model.addAttribute("film", film);
 		model.addAttribute("person", person);
 		return "reservation";
 	}
 
 	@RequestMapping(value = "/reserv", method = RequestMethod.POST)
-	public String signupPost(@ModelAttribute("person") Persons person, @ModelAttribute("seat") int seat, Model model) {
+	public String signupPost(@ModelAttribute("person") Persons person, Model model) {
+		System.out.println(person);
 
-		if (film.getMapOfPersons().putIfAbsent(seat, person) != null) {
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Films.class)
+				.addAnnotatedClass(Persons.class).buildSessionFactory();
+		try {
+			Session session = factory.getCurrentSession();
+
+			session.beginTransaction();
+			
+			Films tempFilm = session.get(Films.class, film.getId());
+			//film.getMapOfPersons().putIfAbsent(person.getSeat(), person); 
+			System.out.println(tempFilm);
+			System.out.println(person);
+			tempFilm.getMapOfPersons().put(person.getSeat(), person);
+			
+			session.save(person);
+
+			session.getTransaction().commit();
+
+			System.out.println("Done!");
+
+		} finally {
+			factory.close();
+		}
+
+		if (film.getMapOfPersons().putIfAbsent(person.getSeat(), person) != null) {
 			return "redirect:/reservation";
 		} else {
-			model.addAttribute("films", listOfFilms);
-			return "index";
+			return "redirect:/index";
 		}
 	}
 
@@ -97,7 +153,23 @@ public class HomeController {
 	@RequestMapping(value = "/addFilm", method = RequestMethod.POST)
 	public String addFilm(@ModelAttribute("film") Films film) {
 
-		listOfFilms.add(film);
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Films.class)
+				.addAnnotatedClass(Persons.class).buildSessionFactory();
+
+		try {
+			Session session = factory.getCurrentSession();
+
+			session.beginTransaction();
+
+			session.save(film);
+
+			session.getTransaction().commit();
+
+			System.out.println("Done!");
+
+		} finally {
+			factory.close();
+		}
 
 		return "adminPort";
 	}
@@ -120,14 +192,13 @@ public class HomeController {
 
 		Persons person = new Persons();
 		model.addAttribute("person", person);
-		model.addAttribute("seat", seat);
 		model.addAttribute("numberOfFilm", numberOfFilm);
 		return "unreservation";
 	}
 
 	@RequestMapping(value = "unreserv", method = RequestMethod.POST)
-	public String unreserv(Model model, @ModelAttribute("sit") int sit,
-			@ModelAttribute("numberOfFilm") int numberOfFilm, @ModelAttribute("person") Persons person) {
+	public String unreserv(Model model, @ModelAttribute("numberOfFilm") int numberOfFilm,
+			@ModelAttribute("person") Persons person) {
 
 		Date d1 = new Date();
 		long diffMinutes = 0;
@@ -145,10 +216,10 @@ public class HomeController {
 		}
 		if (diffMinutes >= 30) {
 
-			Persons tempPerson = listOfFilms.get(numberOfFilm).getMapOfPersons().get(sit);
+			Persons tempPerson = listOfFilms.get(numberOfFilm).getMapOfPersons().get(person.getSeat());
 
 			if ((tempPerson != null) && (tempPerson.getKey().equals(person.getKey()))) {
-				listOfFilms.get(numberOfFilm).getMapOfPersons().replace(sit, null);
+				listOfFilms.get(numberOfFilm).getMapOfPersons().replace(person.getSeat(), null);
 				System.out.println("udało się zwolnic miejsce");
 				return "redirect:/index";
 			} else {
@@ -164,28 +235,27 @@ public class HomeController {
 	@RequestMapping(value = "goToAdmin", method = RequestMethod.POST)
 	public String goToAdmin(Model model, @ModelAttribute("adminLog") String adminLog,
 			@ModelAttribute("adminPass") String adminPass) {
-		if(adminLog.equals("admin") && adminPass.equals("admin")) {
-		return "adminPort";
-	} else {
-		return "redirect:/index";
+		if (adminLog.equals("admin") && adminPass.equals("admin")) {
+			return "adminPort";
+		} else {
+			return "redirect:/index";
 		}
 	}
-	
-	@RequestMapping(value="goToAddPage")
+
+	@RequestMapping(value = "goToAddPage")
 	public String goToAddPage(Model model) {
 		return "redirect:/addFilm";
 	}
-	
-	@RequestMapping(value="goToRemovePage")
+
+	@RequestMapping(value = "goToRemovePage")
 	public String goToRemovePage(Model model) {
 		return "redirect:/removeFilm";
 	}
-	
-	@RequestMapping(value="goToMainPage")
+
+	@RequestMapping(value = "goToMainPage")
 	public String goToMainPage(Model model) {
 		return "redirect:/index";
 	}
-	
 
 	SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
@@ -195,22 +265,12 @@ public class HomeController {
 
 	private int numberOfFilm;
 
-	private int seat;
-
 	public List<Films> getListOfFilms() {
 		return listOfFilms;
 	}
 
 	public void setListOfFilms(List<Films> listOfFilms) {
 		this.listOfFilms = listOfFilms;
-	}
-
-	public int getSeat() {
-		return seat;
-	}
-
-	public void setSit(int seat) {
-		this.seat = seat;
 	}
 
 	public int getNumberOfFilm() {
