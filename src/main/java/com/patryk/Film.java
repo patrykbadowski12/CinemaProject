@@ -1,6 +1,8 @@
 package com.patryk;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.CascadeType;
@@ -16,7 +18,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "films")
-class Films {
+class Film {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,37 +37,15 @@ class Films {
 	@Column(name = "image")
 	private String image;
 
-	@OneToMany(mappedBy = "films", fetch = FetchType.LAZY,cascade= {CascadeType.PERSIST, CascadeType.MERGE,CascadeType.DETACH, CascadeType.REFRESH})
-	@MapKey(name = "seat")
-	private Map<Integer, Persons> mapOfPersons = new HashMap<Integer, Persons>();
+	  @OneToMany(
+		        cascade = CascadeType.ALL, 
+		        orphanRemoval = true
+		    )
+	private	List<PersonDbModel> mapOfPersons = new ArrayList<PersonDbModel>();
 
-	public Films() {
-		for (int i = 1; i <= 50; i++) {
-			mapOfPersons.put(i, null);
-		}
+	public Film() {
 	}
 
-	public Films(Films tempFilm) {
-		this.id= tempFilm.getId();
-		this.nameOfFilm = tempFilm.getNameOfFilm();
-		this.time = tempFilm.getTime();
-		this.date = tempFilm.getDate();
-		this.image = tempFilm.getImage();
-		for (int i = 1; i <= 50; i++) {
-			mapOfPersons.put(i, null);
-		}
-
-	}
-
-	public Films(String nameOfFilm, String time, String date, String image) {
-		this.nameOfFilm = nameOfFilm;
-		this.time = time;
-		this.date = date;
-		this.image = image;
-		for (int i = 1; i <= 50; i++) {
-			mapOfPersons.put(i, null);
-		}
-	}
 
 	public int getId() {
 		return id;
@@ -83,13 +63,15 @@ class Films {
 		this.nameOfFilm = nameOfFilm;
 	}
 
-	public Map<Integer, Persons> getMapOfPersons() {
+	public List<PersonDbModel> getMapOfPersons() {
 		return mapOfPersons;
 	}
 
-	public void setMapOfPersons(Map<Integer, Persons> mapOfPersons) {
+
+	public void setMapOfPersons(List<PersonDbModel> mapOfPersons) {
 		this.mapOfPersons = mapOfPersons;
 	}
+
 
 	public String getImage() {
 		return image;

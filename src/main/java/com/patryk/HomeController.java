@@ -9,20 +9,25 @@ import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import org.springframework.boot.SpringApplication;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class HomeController {
 
-	@RequestMapping("/")
-	public String index() {
+	@Autowired
+	MoviesFactory moviesFactory;
+	
+	@RequestMapping(value="/")
+	@ResponseBody
+	public List<Film> index() {
 
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Films.class)
+/*		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Films.class)
 				.addAnnotatedClass(Persons.class).buildSessionFactory();
 
 		try {
@@ -51,16 +56,16 @@ public class HomeController {
 
 		} finally {
 			factory.close();
-		}
+		}*/
 
 		listOfFilms.add(
-				new Films("Avengers", "07:42:00", "04.08.2015", "http://1.fwcdn.pl/po/37/58/693758/7839647.3.jpg"));
-		listOfFilms.add(new Films("Spider Man", "15:23:00", "16.5.2018",
+				 moviesFactory.create("Avengers", "07:42:00", "04.08.2015", "http://1.fwcdn.pl/po/37/58/693758/7839647.3.jpg"));
+		listOfFilms.add(moviesFactory.create("Spider Man", "15:23:00", "16.5.2018",
 				"http://moviesroom.pl/images/0.Aktualizacja_listopad/Pat/spider-man-homecoming-poster-plakat-1000x600.jpg"));
-		listOfFilms.add(new Films("Thor", "14:50:00", "06.10.2018",
+		listOfFilms.add(moviesFactory.create("Thor", "14:50:00", "06.10.2018",
 				"https://images-na.ssl-images-amazon.com/images/G/01/digital/video/hero/Movies/2013/ThorDarkWorld_2194942100-TDW0NNG1._V362444527_RI_SX940_.jpg"));
 
-		return "redirect:/index";
+		return listOfFilms;
 	}
 
 	@RequestMapping(value = "/index", method = RequestMethod.GET)
@@ -72,46 +77,26 @@ public class HomeController {
 
 	@RequestMapping(value = "/reservation", method = RequestMethod.GET)
 	public String reservation(Model model) {
-		Persons person = new Persons();
+		PersonDbModel person = new PersonDbModel();
 
 		model.addAttribute("film", film);
 		model.addAttribute("person", person);
 		return "reservation";
 	}
 
+	@Autowired
+	FilmRepository filmRepository;
 	@RequestMapping(value = "/reserv", method = RequestMethod.POST)
-	public String signupPost(@ModelAttribute("person") Persons person, Model model) {
+	public String signupPost(@ModelAttribute("person") PersonDbModel person, Model model) {
 		System.out.println(person);
 
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Films.class)
-				.addAnnotatedClass(Persons.class).buildSessionFactory();
-		try {
-			Session session = factory.getCurrentSession();
-
-			session.beginTransaction();
-			
-			Films tempFilm = session.get(Films.class, film.getId());
-			//film.getMapOfPersons().putIfAbsent(person.getSeat(), person); 
-			System.out.println(tempFilm);
-			System.out.println(person);
-			tempFilm.getMapOfPersons().put(person.getSeat(), person);
-			
-			session.save(person);
-
-			session.getTransaction().commit();
-
-			System.out.println("Done!");
-
-		} finally {
-			factory.close();
-		}
-
-		if (film.getMapOfPersons().putIfAbsent(person.getSeat(), person) != null) {
-			return "redirect:/reservation";
-		} else {
+		film.getMapOfPersons().add(person);
+		
+		filmRepository.save(film);
+		
 			return "redirect:/index";
-		}
 	}
+
 
 	@RequestMapping(value = "reservationPlace", method = RequestMethod.POST)
 	public String reservationPlace(Model model, @ModelAttribute("numberOfFilm") int numberOfFilm) {
@@ -144,17 +129,17 @@ public class HomeController {
 	@RequestMapping(value = "/addFilm", method = RequestMethod.GET)
 	public String addFilm(Model model) {
 
-		model.addAttribute("film", new Films());
+		model.addAttribute("film", new Film());
 		model.addAttribute("listOfFilms", listOfFilms);
 
 		return "addFilm";
 	}
 
 	@RequestMapping(value = "/addFilm", method = RequestMethod.POST)
-	public String addFilm(@ModelAttribute("film") Films film) {
+	public String addFilm(@ModelAttribute("film") Film film) {
 
-		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Films.class)
-				.addAnnotatedClass(Persons.class).buildSessionFactory();
+		SessionFactory factory = new Configuration().configure("hibernate.cfg.xml").addAnnotatedClass(Film.class)
+				.addAnnotatedClass(PersonDbModel.class).buildSessionFactory();
 
 		try {
 			Session session = factory.getCurrentSession();
@@ -190,7 +175,7 @@ public class HomeController {
 	@RequestMapping(value = "/unreservation", method = RequestMethod.GET)
 	public String unreservation(Model model) {
 
-		Persons person = new Persons();
+		PersonDbModel person = new PersonDbModel();
 		model.addAttribute("person", person);
 		model.addAttribute("numberOfFilm", numberOfFilm);
 		return "unreservation";
@@ -198,9 +183,9 @@ public class HomeController {
 
 	@RequestMapping(value = "unreserv", method = RequestMethod.POST)
 	public String unreserv(Model model, @ModelAttribute("numberOfFilm") int numberOfFilm,
-			@ModelAttribute("person") Persons person) {
+			@ModelAttribute("person") PersonDbModel person) {
 
-		Date d1 = new Date();
+		/*Date d1 = new Date();
 		long diffMinutes = 0;
 		System.out.println(d1);
 		try {
@@ -216,7 +201,7 @@ public class HomeController {
 		}
 		if (diffMinutes >= 30) {
 
-			Persons tempPerson = listOfFilms.get(numberOfFilm).getMapOfPersons().get(person.getSeat());
+			PersonDbModel tempPerson = listOfFilms.get(numberOfFilm).getMapOfPersons().get(person.getSeat());
 
 			if ((tempPerson != null) && (tempPerson.getKey().equals(person.getKey()))) {
 				listOfFilms.get(numberOfFilm).getMapOfPersons().replace(person.getSeat(), null);
@@ -229,7 +214,8 @@ public class HomeController {
 		} else {
 			System.out.println("za pozno");
 			return "redirect:/index";
-		}
+		}*/
+		return "redirect:/index";
 	}
 
 	@RequestMapping(value = "goToAdmin", method = RequestMethod.POST)
@@ -259,17 +245,17 @@ public class HomeController {
 
 	SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
-	private List<Films> listOfFilms = new ArrayList<Films>();
+	private List<Film> listOfFilms = new ArrayList<Film>();
 
-	private Films film;
+	private Film film;
 
 	private int numberOfFilm;
 
-	public List<Films> getListOfFilms() {
+	public List<Film> getListOfFilms() {
 		return listOfFilms;
 	}
 
-	public void setListOfFilms(List<Films> listOfFilms) {
+	public void setListOfFilms(List<Film> listOfFilms) {
 		this.listOfFilms = listOfFilms;
 	}
 

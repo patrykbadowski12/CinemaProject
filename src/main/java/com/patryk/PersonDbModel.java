@@ -11,7 +11,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name="persons")
-class Persons {
+class PersonDbModel {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,24 +27,8 @@ class Persons {
 	@Column(name="lastname")
 	private String lastName;
 
-	@Column(name="key")
+	@Column(name="token")
 	private String key;
-	
-	@ManyToOne
-	@JoinColumn(name="films_id")
-	private Films films;
-	
-	public Persons() {}
-	
-	
-	
-	public Persons(int seat, String firstName, String lastName, String key) {
-		super();
-		this.seat = seat;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.key = key;
-	}
 
 
 
@@ -87,13 +71,6 @@ class Persons {
 		this.lastName = lastName;
 	}
 
-	public Films getFilms() {
-		return films;
-	}
-
-	public void setFilms(Films films) {
-		this.films = films;
-	}
 
 	@Override
 	public String toString() {
